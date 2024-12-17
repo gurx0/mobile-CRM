@@ -17,4 +17,18 @@ data class ClientRequest(
     val email: String
 )
 
+data class OrderRequest(
+    val client: Int,
+    val product: String,
+    val quantity: Int,
+    val price: String,
+    val description: String
+)
+
+data class OrderEditRequest(
+    val product: String?,
+    val quantity: Int?,
+    val price: String?,
+    val status: String?
+)
 
