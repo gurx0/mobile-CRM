@@ -1,12 +1,11 @@
 package com.example.order_customer_mobile_shell.network
 
-import com.example.order_customer_mobile_shell.data.LoginRequest
-import com.example.order_customer_mobile_shell.data.ProtectedDataRequest
-import com.example.order_customer_mobile_shell.data.TokenResponse
+import com.example.order_customer_mobile_shell.data.*
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
 
@@ -27,11 +26,11 @@ class ApiClient {
         moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     }
 
-    // Authentication
+    // Авторизация
     fun authenticate(username: String, password: String, callback: (Boolean) -> Unit) {
         val loginRequest = LoginRequest(username, password)
         val json = moshi.adapter(LoginRequest::class.java).toJson(loginRequest)
-        val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json)
+        val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
 
         val request = Request.Builder()
             .url("http://127.0.0.1:8000/api/token/")
@@ -57,17 +56,15 @@ class ApiClient {
         })
     }
 
-    // Refresh Token
+    // Обновление токена
     private fun refreshToken(callback: (Boolean) -> Unit) {
         if (refreshToken == null) {
             callback(false)
             return
         }
 
-        val requestBody = RequestBody.create(
-            "application/json".toMediaTypeOrNull(),
-            """{"refresh":"$refreshToken"}"""
-        )
+        val requestBody = """{"refresh":"$refreshToken"}"""
+            .toRequestBody("application/json".toMediaTypeOrNull())
 
         val request = Request.Builder()
             .url("http://127.0.0.1:8000/api/token/refresh/")
@@ -92,17 +89,57 @@ class ApiClient {
         })
     }
 
-    fun makeProtectedRequest(data: ProtectedDataRequest, callback: (Boolean, String?) -> Unit) {
+    // Вспомогательный метод для проверки токенов
+    private fun ensureAccessTokenValid(callback: (Boolean) -> Unit) {
+        if (accessToken == null) {
+            refreshToken(callback)
+        } else {
+            callback(true)
+        }
+    }
+
+    // Запросы для работы с клиентами
+    fun addClient(data: ClientRequest, callback: (Boolean, String?) -> Unit) {
+        ensureAccessTokenValid { isValid ->
+            if (isValid) {
+                val json = moshi.adapter(ClientRequest::class.java).toJson(data)
+                executePostRequest("/api/clients/add/", json, callback)
+            } else {
+                callback(false, "Failed to refresh token")
+            }
+        }
+    }
+
+    fun getClient(id: Int, callback: (Boolean, String?) -> Unit) {
+        ensureAccessTokenValid { isValid ->
+            if (isValid) {
+                executeGetRequest("/api/clients/get/$id/", callback)
+            } else {
+                callback(false, "Failed to refresh token")
+            }
+        }
+    }
+
+    fun deleteClient(id: Int, callback: (Boolean) -> Unit) {
+        ensureAccessTokenValid { isValid ->
+            if (isValid) {
+                executeDeleteRequest("/api/clients/delete/$id/", callback)
+            } else {
+                callback(false)
+            }
+        }
+    }
+
+    // Вспомогательный метод для POST запросов
+    private fun executePostRequest(url: String, json: String, callback: (Boolean, String?) -> Unit) {
         if (accessToken == null) {
             callback(false, "No Access Token")
             return
         }
 
-        val json = moshi.adapter(ProtectedDataRequest::class.java).toJson(data)
-        val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json)
-
+        val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
         val request = Request.Builder()
-            .url("http://127.0.0.1:8000/api/clients/add/")
+            .url("http://127.0.0.1:8000$url")
             .addHeader("Authorization", "Bearer $accessToken")
             .post(requestBody)
             .build()
@@ -111,11 +148,6 @@ class ApiClient {
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     callback(true, response.body?.string())
-                } else if (response.code == 401) {
-                    refreshToken { success ->
-                        if (success) makeProtectedRequest(data, callback)
-                        else callback(false, "Token refresh failed")
-                    }
                 } else {
                     callback(false, "Request failed: ${response.code}")
                 }
@@ -123,6 +155,58 @@ class ApiClient {
 
             override fun onFailure(call: Call, e: IOException) {
                 callback(false, e.localizedMessage)
+            }
+        })
+    }
+
+    // GET запросы
+    private fun executeGetRequest(url: String, callback: (Boolean, String?) -> Unit) {
+        if (accessToken == null) {
+            callback(false, "No Access Token")
+            return
+        }
+
+        val request = Request.Builder()
+            .url("http://127.0.0.1:8000$url")
+            .addHeader("Authorization", "Bearer $accessToken")
+            .get()
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    callback(true, response.body?.string())
+                } else {
+                    callback(false, "Request failed: ${response.code}")
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                callback(false, e.localizedMessage)
+            }
+        })
+    }
+
+    // DELETE запросы
+    private fun executeDeleteRequest(url: String, callback: (Boolean) -> Unit) {
+        if (accessToken == null) {
+            callback(false)
+            return
+        }
+
+        val request = Request.Builder()
+            .url("http://127.0.0.1:8000$url")
+            .addHeader("Authorization", "Bearer $accessToken")
+            .delete()
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                callback(response.isSuccessful)
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                callback(false)
             }
         })
     }

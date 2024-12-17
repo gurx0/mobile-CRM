@@ -3,7 +3,7 @@ package com.example.order_customer_mobile_shell
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.order_customer_mobile_shell.data.ProtectedDataRequest
+import com.example.order_customer_mobile_shell.data.ClientRequest
 import com.example.order_customer_mobile_shell.network.ApiClient
 import kotlinx.coroutines.launch
 
@@ -26,23 +26,41 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    // Функция получения данных с сервера
-    fun fetchData() {
+    // Функция добавления клиента
+    fun addClient(clientRequest: ClientRequest) {
         viewModelScope.launch {
-            val requestData = ProtectedDataRequest(
-                first_name = "Имя",
-                last_name = "Фамилия",
-                middle_name = "Отчество",
-                mobile_phone = "88005553535",
-                email = "example@email.com"
-            )
-            apiClient.makeProtectedRequest(requestData) { success, response ->
+            apiClient.addClient(clientRequest) { success, response ->
                 if (success) {
-                    println("Data fetched successfully: $response")
-                    dataList.clear()
+                    println("Client added successfully: $response")
+                } else {
+                    println("Failed to add client: $response")
+                }
+            }
+        }
+    }
+
+    // Функция получения клиента по ID
+    fun getClientById(id: Int) {
+        viewModelScope.launch {
+            apiClient.getClient(id) { success, response ->
+                if (success) {
+                    println("Client fetched successfully: $response")
                     response?.let { dataList.add(it) }
                 } else {
-                    println("Failed to fetch data: $response")
+                    println("Failed to fetch client: $response")
+                }
+            }
+        }
+    }
+
+    // Функция удаления клиента
+    fun deleteClient(id: Int) {
+        viewModelScope.launch {
+            apiClient.deleteClient(id) { success ->
+                if (success) {
+                    println("Client deleted successfully")
+                } else {
+                    println("Failed to delete client")
                 }
             }
         }
