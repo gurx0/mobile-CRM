@@ -1,71 +1,73 @@
+
+
 package com.example.order_customer_mobile_shell.network
 
-import com.example.order_customer_mobile_shell.data.ClientRequest
-import com.example.order_customer_mobile_shell.data.ClientEditRequest
+import com.example.order_customer_mobile_shell.data.OrderRequest
+import com.example.order_customer_mobile_shell.data.OrderEditRequest
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
-class ApiClient(private val authService: AuthService) {
+class ApiOrder(private val authService: AuthService) {
 
-    // Добавление клиента
-    fun addClient(data: ClientRequest, callback: (Boolean, String?) -> Unit) {
+    // Добавление заказа
+    fun addOrder(orderRequest: OrderRequest, callback: (Boolean, String?) -> Unit) {
         authService.ensureAccessTokenValid { isValid ->
             if (isValid) {
                 val accessToken = authService.getAccessToken()
-                val json = authService.moshi.adapter(ClientRequest::class.java).toJson(data)
-                executePostRequest("/api/clients/add/", json, accessToken, callback)
+                val json = authService.moshi.adapter(OrderRequest::class.java).toJson(orderRequest)
+                executePostRequest("/api/orders/add/", json, accessToken, callback)
             } else {
                 callback(false, "Failed to refresh token")
             }
         }
     }
 
-    // Получение клиента по ID
-    fun getClientById(id: Int, callback: (Boolean, String?) -> Unit) {
+    // Получение одного заказа по ID
+    fun getOrderById(id: Int, callback: (Boolean, String?) -> Unit) {
         authService.ensureAccessTokenValid { isValid ->
             if (isValid) {
                 val accessToken = authService.getAccessToken()
                 val json = """{"id":$id}"""
-                executePostRequest("/api/clients/get/$id/", json, accessToken, callback)
+                executePostRequest("/api/orders/get/$id/", json, accessToken, callback)
             } else {
                 callback(false, "Failed to refresh token")
             }
         }
     }
 
-    // Получение списка клиентов
-    fun getClients(startId: Int, callback: (Boolean, String?) -> Unit) {
+    // Получение списка заказов
+    fun getOrders(startId: Int, callback: (Boolean, String?) -> Unit) {
         authService.ensureAccessTokenValid { isValid ->
             if (isValid) {
                 val accessToken = authService.getAccessToken()
                 val json = """{"start_id":$startId}"""
-                executePostRequest("/api/clients/get/", json, accessToken, callback)
+                executePostRequest("/api/orders/get/", json, accessToken, callback)
             } else {
                 callback(false, "Failed to refresh token")
             }
         }
     }
 
-    // Редактирование клиента
-    fun editClient(id: Int, data: ClientEditRequest, callback: (Boolean, String?) -> Unit) {
+    // Редактирование заказа
+    fun editOrder(id: Int, orderEditRequest: OrderEditRequest, callback: (Boolean, String?) -> Unit) {
         authService.ensureAccessTokenValid { isValid ->
             if (isValid) {
                 val accessToken = authService.getAccessToken()
-                val json = authService.moshi.adapter(ClientEditRequest::class.java).toJson(data)
-                executePostRequest("/api/clients/edit/$id/", json, accessToken, callback)
+                val json = authService.moshi.adapter(OrderEditRequest::class.java).toJson(orderEditRequest)
+                executePostRequest("/api/orders/edit/$id/", json, accessToken, callback)
             } else {
                 callback(false, "Failed to refresh token")
             }
         }
     }
 
-    // Удаление клиента
-    fun deleteClient(id: Int, callback: (Boolean) -> Unit) {
+    // Удаление заказа
+    fun deleteOrder(id: Int, callback: (Boolean) -> Unit) {
         authService.ensureAccessTokenValid { isValid ->
             if (isValid) {
                 val accessToken = authService.getAccessToken()
-                executeDeleteRequest("/api/clients/delete/$id/", accessToken, callback)
+                executeDeleteRequest("/api/orders/delete/$id/", accessToken, callback)
             } else {
                 callback(false)
             }

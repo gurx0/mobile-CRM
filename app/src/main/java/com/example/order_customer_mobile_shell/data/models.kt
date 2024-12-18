@@ -17,11 +17,17 @@ data class ClientRequest(
     val email: String
 )
 
+data class ClientEditRequest(
+    val first_name: String?,
+    val last_name: String?
+)
+
 data class OrderRequest(
     val client: Int,
     val product: String,
     val quantity: Int,
     val price: String,
+    val totalPrice: String,
     val description: String
 )
 
