@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -19,14 +22,17 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.order_customer_mobile_shell.network.ApiClient
+import com.example.order_customer_mobile_shell.network.AuthService
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(authService: AuthService, apiClient: ApiClient = ApiClient(authService)) {
     var query by remember { mutableStateOf("") }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed) // Состояние для сайдбара
     val scope = rememberCoroutineScope() // Для управления состоянием в корутинах
+    var clientData by remember { mutableStateOf(listOf<String>()) }
 
     // Выезжающий сайдбар
     ModalNavigationDrawer(
@@ -100,18 +106,56 @@ fun MainScreen() {
                             .padding(innerPadding)
                             .background(Color.White)
                     ) {
-                        Text(
-                            text = "Main Content",
-                            modifier = Modifier.align(Alignment.Center),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                },
-                floatingActionButton = {
-                    FloatingActionButton(
-                        onClick = { println("FloatingActionButton clicked!") } // Вывод в консоль
-                    ) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                        // Таблица с данными клиентов
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                                .align(Alignment.Center)
+                                .border(1.dp, Color.Gray)
+                                .background(Color.LightGray)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .verticalScroll(rememberScrollState())
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(16.dp)
+                            ) {
+                                clientData.forEachIndexed { index, data ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = "Client $index: $data",
+                                            style = TextStyle(color = Color.Black, fontSize = 14.sp),
+                                            modifier = Modifier
+                                                .border(1.dp, Color.Black)
+                                                .padding(8.dp)
+                                                .width(200.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        FloatingActionButton(
+                            onClick = {
+                                // Запрос на сервер для получения данных
+                                authService.authenticate("admin", "admin") { authSuccess ->
+                                    if (authSuccess) {
+                                        apiClient.getClients(0) { success, response ->
+                                            if (success && response != null) {
+                                                clientData = response.split("\n") // Пример преобразования
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Refresh Data")
+                        }
                     }
                 }
             )
@@ -150,6 +194,6 @@ fun SidebarContent(onClose: () -> Unit) {
 @Preview
 @Composable
 fun PreviewMainScreen() {
-    MainScreen()
+    val authService = AuthService()
+    MainScreen(authService)
 }
-

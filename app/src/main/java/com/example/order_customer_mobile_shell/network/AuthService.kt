@@ -9,6 +9,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class AuthService {
     val client: OkHttpClient
@@ -22,6 +23,8 @@ class AuthService {
 
         client = OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
             .build()
 
         moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
@@ -34,7 +37,7 @@ class AuthService {
         val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
 
         val request = Request.Builder()
-            .url("http://127.0.0.1:8000/api/token/")
+            .url("http://95.164.3.6:8001/api/token/")
             .post(requestBody)
             .build()
 
@@ -68,7 +71,7 @@ class AuthService {
             .toRequestBody("application/json".toMediaTypeOrNull())
 
         val request = Request.Builder()
-            .url("http://127.0.0.1:8000/api/token/refresh/")
+            .url("http://95.164.3.6:8001/api/token/refresh/")
             .post(requestBody)
             .build()
 

@@ -39,7 +39,7 @@ class ApiClient(private val authService: AuthService) {
         authService.ensureAccessTokenValid { isValid ->
             if (isValid) {
                 val accessToken = authService.getAccessToken()
-                val json = """{"start_id":$startId}"""
+                val json = """{"start_id":$startId; "search":"1212"}"""
                 executePostRequest("/api/clients/get/", json, accessToken, callback)
             } else {
                 callback(false, "Failed to refresh token")
@@ -86,7 +86,7 @@ class ApiClient(private val authService: AuthService) {
 
         val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
         val request = okhttp3.Request.Builder()
-            .url("http://127.0.0.1:8000$url")
+            .url("http://95.164.3.6:8001$url")
             .addHeader("Authorization", "Bearer $token")
             .post(requestBody)
             .build()
@@ -113,7 +113,7 @@ class ApiClient(private val authService: AuthService) {
         }
 
         val request = okhttp3.Request.Builder()
-            .url("http://127.0.0.1:8000$url")
+            .url("http://95.164.3.6:8001$url")
             .addHeader("Authorization", "Bearer $token")
             .delete()
             .build()

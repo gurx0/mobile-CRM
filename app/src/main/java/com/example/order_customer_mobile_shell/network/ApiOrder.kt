@@ -18,7 +18,7 @@ class ApiOrder(private val authService: AuthService) {
                 val json = authService.moshi.adapter(OrderRequest::class.java).toJson(orderRequest)
                 executePostRequest("/api/orders/add/", json, accessToken, callback)
             } else {
-                callback(false, "Failed to refresh token")
+                callback(false, "Failed to refresh tok en")
             }
         }
     }
@@ -88,7 +88,7 @@ class ApiOrder(private val authService: AuthService) {
 
         val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
         val request = okhttp3.Request.Builder()
-            .url("http://127.0.0.1:8000$url")
+            .url("http://95.164.3.6:8001$url")
             .addHeader("Authorization", "Bearer $token")
             .post(requestBody)
             .build()
@@ -115,7 +115,7 @@ class ApiOrder(private val authService: AuthService) {
         }
 
         val request = okhttp3.Request.Builder()
-            .url("http://127.0.0.1:8000$url")
+            .url("http://95.164.3.6:8001$url")
             .addHeader("Authorization", "Bearer $token")
             .delete()
             .build()
