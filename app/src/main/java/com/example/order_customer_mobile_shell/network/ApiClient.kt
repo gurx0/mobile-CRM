@@ -1,9 +1,8 @@
 package com.example.order_customer_mobile_shell.network
 
 import com.example.order_customer_mobile_shell.data.ClientRequest
-import com.example.order_customer_mobile_shell.data.ClientEditRequest
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
+import com.example.order_customer_mobile_shell.data.OrderEditRequest
+import okhttp3.FormBody
 import java.io.IOException
 
 class ApiClient(private val authService: AuthService) {
@@ -13,34 +12,42 @@ class ApiClient(private val authService: AuthService) {
         authService.ensureAccessTokenValid { isValid ->
             if (isValid) {
                 val accessToken = authService.getAccessToken()
-                val json = authService.moshi.adapter(ClientRequest::class.java).toJson(data)
-                executePostRequest("/api/clients/add/", json, accessToken, callback)
+                val params = mapOf(
+                    "first_name" to data.first_name,
+                    "last_name" to data.last_name,
+                    "middle_name" to (data.middle_name ?: ""),
+                    "mobile_phone" to (data.mobile_phone ?: ""),
+                    "email" to data.email
+                )
+                executePostRequest("/api/clients/add/", params, accessToken, callback)
             } else {
                 callback(false, "Failed to refresh token")
             }
         }
     }
 
-    // Получение клиента по ID
-    fun getClientById(id: Int, callback: (Boolean, String?) -> Unit) {
+    // Получение клиента по ID с фильтром
+    fun getClientById(id: Int, search: String? = null, callback: (Boolean, String?) -> Unit) {
         authService.ensureAccessTokenValid { isValid ->
             if (isValid) {
                 val accessToken = authService.getAccessToken()
-                val json = """{"id":$id}"""
-                executePostRequest("/api/clients/get/$id/", json, accessToken, callback)
+                val params = mutableMapOf("id" to id.toString())
+                search?.let { params["search"] = it }
+                executePostRequest("/api/clients/get/$id/", params, accessToken, callback)
             } else {
                 callback(false, "Failed to refresh token")
             }
         }
     }
 
-    // Получение списка клиентов
-    fun getClients(startId: Int, callback: (Boolean, String?) -> Unit) {
+    // Получение списка клиентов с фильтром
+    fun getClients(startId: Int, search: String? = null, callback: (Boolean, String?) -> Unit) {
         authService.ensureAccessTokenValid { isValid ->
             if (isValid) {
                 val accessToken = authService.getAccessToken()
-                val json = """{"start_id":$startId; "search":"1212"}"""
-                executePostRequest("/api/clients/get/", json, accessToken, callback)
+                val params = mutableMapOf("start_id" to startId.toString())
+                search?.let { params["search"] = it }
+                executePostRequest("/api/clients/get/", params, accessToken, callback)
             } else {
                 callback(false, "Failed to refresh token")
             }
@@ -48,12 +55,18 @@ class ApiClient(private val authService: AuthService) {
     }
 
     // Редактирование клиента
-    fun editClient(id: Int, data: ClientEditRequest, callback: (Boolean, String?) -> Unit) {
+    fun editClient(id: Int, data: ClientRequest, callback: (Boolean, String?) -> Unit) {
         authService.ensureAccessTokenValid { isValid ->
             if (isValid) {
                 val accessToken = authService.getAccessToken()
-                val json = authService.moshi.adapter(ClientEditRequest::class.java).toJson(data)
-                executePostRequest("/api/clients/edit/$id/", json, accessToken, callback)
+                val params = mutableMapOf<String, String>()
+                data.first_name.let { params["first_name"] = it }
+                data.middle_name?.let { params["middle_name"] = it }
+                data.last_name.let { params["last_name"] = it }
+                data.email.let { params["email"] = it }
+                data.mobile_phone?.let { params["mobile_phone"] = it }
+
+                executePostRequest("/api/clients/edit/$id/", params, accessToken, callback)
             } else {
                 callback(false, "Failed to refresh token")
             }
@@ -75,7 +88,7 @@ class ApiClient(private val authService: AuthService) {
     // Вспомогательные методы
     private fun executePostRequest(
         url: String,
-        json: String,
+        params: Map<String, String>,
         token: String?,
         callback: (Boolean, String?) -> Unit
     ) {
@@ -84,11 +97,13 @@ class ApiClient(private val authService: AuthService) {
             return
         }
 
-        val requestBody = json.toRequestBody("application/json".toMediaTypeOrNull())
+        val formBodyBuilder = FormBody.Builder()
+        params.forEach { (key, value) -> formBodyBuilder.add(key, value) }
+
         val request = okhttp3.Request.Builder()
             .url("http://95.164.3.6:8001$url")
             .addHeader("Authorization", "Bearer $token")
-            .post(requestBody)
+            .post(formBodyBuilder.build())
             .build()
 
         authService.client.newCall(request).enqueue(object : okhttp3.Callback {

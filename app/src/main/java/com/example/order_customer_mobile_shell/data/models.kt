@@ -11,6 +11,7 @@ data class LoginRequest(
 )
 
 data class ClientRequest(
+//    val id: Int, // Добавьте это поле
     val first_name: String,
     val last_name: String,
     val middle_name: String?,
@@ -18,10 +19,10 @@ data class ClientRequest(
     val email: String
 )
 
-data class ClientEditRequest(
-    val first_name: String?,
-    val last_name: String?
-)
+//data class ClientEditRequest(
+//    val first_name: String?,
+//    val last_name: String?
+//)
 
 data class OrderRequest(
     val client: Int,

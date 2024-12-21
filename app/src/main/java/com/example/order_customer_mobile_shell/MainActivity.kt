@@ -11,9 +11,5 @@ class MainActivity : ComponentActivity() {
         setContent {
             MainScreen(authService = AuthService())
         }
-
-
     }
-
-
 }

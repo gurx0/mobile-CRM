@@ -19,9 +19,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.order_customer_mobile_shell.data.ClientRequest
 import com.example.order_customer_mobile_shell.network.ApiClient
 import com.example.order_customer_mobile_shell.network.AuthService
 import kotlinx.coroutines.launch
@@ -30,19 +29,24 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(authService: AuthService, apiClient: ApiClient = ApiClient(authService)) {
     var query by remember { mutableStateOf("") }
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed) // Состояние для сайдбара
-    val scope = rememberCoroutineScope() // Для управления состоянием в корутинах
+    var newClientFirstName by remember { mutableStateOf("") }
+    var newClientLastName by remember { mutableStateOf("") }
+    var newClientMiddleName by remember { mutableStateOf("") }
+    var newClientMobilePhone by remember { mutableStateOf("") }
+    var newClientEmail by remember { mutableStateOf("") }
+    var showAddDialog by remember { mutableStateOf(false) } // Управление видимостью окна
+
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
     var clientData by remember { mutableStateOf(listOf<String>()) }
 
-    // Выезжающий сайдбар
     ModalNavigationDrawer(
         drawerContent = {
             SidebarContent {
-                scope.launch { drawerState.close() } // Закрыть сайдбар
+                scope.launch { drawerState.close() }
             }
         },
-        drawerState = drawerState, // Управляемое состояние
-        gesturesEnabled = false, // Отключаем свайпы, чтобы открытие было только по кнопке
+        drawerState = drawerState,
         content = {
             Scaffold(
                 topBar = {
@@ -61,17 +65,15 @@ fun MainScreen(authService: AuthService, apiClient: ApiClient = ApiClient(authSe
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Левая кнопка (открытие сайдбара)
                                 IconButton(
                                     onClick = {
-                                        scope.launch { drawerState.open() } // Открыть сайдбар
+                                        scope.launch { drawerState.open() }
                                     },
                                     modifier = Modifier.padding(start = 10.dp)
                                 ) {
                                     Icon(Icons.Default.Dehaze, contentDescription = "Menu")
                                 }
 
-                                // Поле ввода
                                 BasicTextField(
                                     value = query,
                                     onValueChange = { query = it },
@@ -83,12 +85,11 @@ fun MainScreen(authService: AuthService, apiClient: ApiClient = ApiClient(authSe
                                         .alpha(0.8f)
                                 )
 
-                                // Кнопка аккаунта
                                 IconButton(
-                                    onClick = { /* TODO: Обработать аккаунт */ },
+                                    onClick = { showAddDialog = true }, // Открыть окно добавления
                                     modifier = Modifier.padding(end = 5.dp)
                                 ) {
-                                    Icon(Icons.Default.AccountCircle, contentDescription = "Account")
+                                    Icon(Icons.Default.Add, contentDescription = "Add Client")
                                 }
                             }
                         },
@@ -106,45 +107,99 @@ fun MainScreen(authService: AuthService, apiClient: ApiClient = ApiClient(authSe
                             .padding(innerPadding)
                             .background(Color.White)
                     ) {
-                        // Таблица с данными клиентов
-                        Box(
+                        // Содержимое таблицы
+                        Column(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(16.dp)
-                                .align(Alignment.Center)
-                                .border(1.dp, Color.Gray)
-                                .background(Color.LightGray)
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .verticalScroll(rememberScrollState())
-                                    .horizontalScroll(rememberScrollState())
-                                    .padding(16.dp)
-                            ) {
-                                clientData.forEachIndexed { index, data ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            text = "Client $index: $data",
-                                            style = TextStyle(color = Color.Black, fontSize = 14.sp),
-                                            modifier = Modifier
-                                                .border(1.dp, Color.Black)
-                                                .padding(8.dp)
-                                                .width(200.dp)
-                                        )
-                                    }
-                                }
+                            // Здесь отображаются клиенты
+                            clientData.forEach { data ->
+                                Text(text = data, modifier = Modifier.padding(8.dp))
                             }
                         }
 
+                        // Диалог добавления клиента
+                        if (showAddDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showAddDialog = false },
+                                title = { Text("Add New Client") },
+                                text = {
+                                    Column {
+                                        OutlinedTextField(
+                                            value = newClientFirstName,
+                                            onValueChange = { newClientFirstName = it },
+                                            label = { Text("First Name") },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        OutlinedTextField(
+                                            value = newClientLastName,
+                                            onValueChange = { newClientLastName = it },
+                                            label = { Text("Last Name") },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        OutlinedTextField(
+                                            value = newClientMiddleName,
+                                            onValueChange = { newClientMiddleName = it },
+                                            label = { Text("Middle Name") },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        OutlinedTextField(
+                                            value = newClientMobilePhone,
+                                            onValueChange = { newClientMobilePhone = it },
+                                            label = { Text("Mobile Phone") },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        OutlinedTextField(
+                                            value = newClientEmail,
+                                            onValueChange = { newClientEmail = it },
+                                            label = { Text("Email") },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
+                                },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            val newClient = ClientRequest(
+                                                first_name = newClientFirstName,
+                                                last_name = newClientLastName,
+                                                middle_name = newClientMiddleName,
+                                                mobile_phone = newClientMobilePhone,
+                                                email = newClientEmail
+                                            )
+                                            apiClient.addClient(newClient) { success, _ ->
+                                                if (success) {
+                                                    // Обновление данных после добавления
+                                                    newClientFirstName = ""
+                                                    newClientLastName = ""
+                                                    newClientMiddleName = ""
+                                                    newClientMobilePhone = ""
+                                                    newClientEmail = ""
+                                                    apiClient.getClients(0, query) { _, response ->
+                                                        clientData = response?.split("\n") ?: listOf()
+                                                    }
+                                                }
+                                                showAddDialog = false // Закрыть окно
+                                            }
+                                        }
+                                    ) {
+                                        Text("Add")
+                                    }
+                                },
+                                dismissButton = {
+                                    Button(onClick = { showAddDialog = false }) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            )
+                        }
                         FloatingActionButton(
                             onClick = {
                                 // Запрос на сервер для получения данных
                                 authService.authenticate("admin", "admin") { authSuccess ->
                                     if (authSuccess) {
-                                        apiClient.getClients(0) { success, response ->
+                                        apiClient.getClients(0, query) { success, response ->
                                             if (success && response != null) {
                                                 clientData = response.split("\n") // Пример преобразования
                                             }
@@ -162,6 +217,7 @@ fun MainScreen(authService: AuthService, apiClient: ApiClient = ApiClient(authSe
         }
     )
 }
+
 
 @Composable
 fun SidebarContent(onClose: () -> Unit) {

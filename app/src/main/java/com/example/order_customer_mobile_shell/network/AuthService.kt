@@ -22,6 +22,7 @@ class AuthService {
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
 
         client = OkHttpClient.Builder()
+            .cookieJar(CustomCookieJar())
             .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
