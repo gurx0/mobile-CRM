@@ -5,8 +5,7 @@ package com.example.order_customer_mobile_shell.network
 import com.example.order_customer_mobile_shell.data.OrderRequest
 import com.example.order_customer_mobile_shell.data.OrderEditRequest
 import okhttp3.FormBody
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
+
 import java.io.IOException
 
 class ApiOrder(private val authService: AuthService) {
@@ -14,22 +13,19 @@ class ApiOrder(private val authService: AuthService) {
     // Добавление заказа
     fun addOrder(data: OrderRequest, callback: (Boolean, String?) -> Unit) {
         authService.ensureAccessTokenValid { isValid ->
-//            if (isValid) {
-//                val accessToken = authService.getAccessToken()
-//                val params = mapOf(
-//                    "client" to data.client.id,
-//                    "product" to data.product,
-//                    "quantity" to data.quantity,
-//                    "price" to data.price,
-//                    "total_price" to data.total_price,
-//                    "description" to data.description,
-//                    "status" to data.status,
-//                    "created_at" to data.created_at
-//                )
-//                 executePostRequest("/api/orders/add/", params, accessToken, callback)
-//            } else {
-//                callback(false, "Failed to refresh tok en")
-//            }
+            if (isValid) {
+                val accessToken = authService.getAccessToken()
+                val params = mapOf(
+                    "client" to data.client.id.toString(),
+                    "product" to data.product,
+                    "quantity" to data.quantity.toString(),
+                    "price" to data.price,
+                    "description" to (data.description ?: ""),
+                )
+                 executePostRequest("/api/orders/add/", params, accessToken, callback)
+            } else {
+                callback(false, "Failed to refresh tok en")
+            }
         }
     }
 
@@ -88,7 +84,7 @@ class ApiOrder(private val authService: AuthService) {
     // Вспомогательные методы
     private fun executePostRequest(
         url: String,
-        params: Map<String, String>,
+        params: Map<String, Any>,
         token: String?,
         callback: (Boolean, String?) -> Unit
     ) {
@@ -98,7 +94,7 @@ class ApiOrder(private val authService: AuthService) {
         }
 
         val formBodyBuilder = FormBody.Builder()
-        params.forEach { (key, value) -> formBodyBuilder.add(key, value) }
+        params.forEach { (key, value) -> formBodyBuilder.add(key, value.toString()) }
 
         val request = okhttp3.Request.Builder()
             .url("http://95.164.3.6:8001$url")

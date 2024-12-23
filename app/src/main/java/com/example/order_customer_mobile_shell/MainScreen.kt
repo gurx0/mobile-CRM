@@ -16,6 +16,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
+import com.example.order_customer_mobile_shell.components.AddClientDialog
+import com.example.order_customer_mobile_shell.components.AddOrderDialog
+import com.example.order_customer_mobile_shell.components.ClientTable
+import com.example.order_customer_mobile_shell.components.OrderTable
 import com.example.order_customer_mobile_shell.data.ClientRequest
 import com.example.order_customer_mobile_shell.data.JsonParser.parseClients
 import com.example.order_customer_mobile_shell.data.JsonParser.parseOrders
@@ -42,7 +46,7 @@ fun MainScreen(
     var orderData by remember { mutableStateOf(listOf<OrderRequest>()) }
 
     val scope = rememberCoroutineScope()
-    val start_id by remember { mutableStateOf(0) }
+    var start_id by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -80,11 +84,17 @@ fun MainScreen(
                             )
 
                             IconButton(
-                                onClick = { currentTable = "CLIENTS" }) {
+                                onClick = {
+                                    currentTable = "CLIENTS";
+                                    start_id = 0 ;
+                                    Log.d("table", "start_id: $start_id") }) {
                                 Icon(Icons.Default.Person, contentDescription = "ClientsTable")
                             }
                             IconButton(
-                                onClick = { currentTable = "ORDERS" }) {
+                                onClick = {
+                                    currentTable = "ORDERS";
+                                    start_id = 0 ;
+                                    Log.d("table", "start_id: $start_id")}) {
                                 Icon(Icons.Default.ShoppingCart, contentDescription = "OrdersTable")
                             }
                         }
@@ -124,6 +134,7 @@ fun MainScreen(
                                                     } catch (e: Exception){
                                                         emptyList()
                                                     }
+                                                    start_id += 50
                                                 }
                                             }
                                         }
@@ -134,13 +145,14 @@ fun MainScreen(
                                 scope.launch {
                                     authService.authenticate("sanya", "mobile-api123") { authSuccess ->
                                         if (authSuccess) {
-                                            apiOrder.getOrders(start_id) { success, response ->
+                                            apiOrder.getOrders(start_id, query) { success, response ->
                                                 if (success && response != null) {
                                                     orderData = try {
                                                         parseOrders(response)
                                                     } catch (e: Exception){
                                                         emptyList()
                                                     }
+                                                    start_id += 50
                                                 }
                                             }
                                         }
@@ -182,9 +194,11 @@ fun MainScreen(
                             onDismiss = { showAddDialog = false },
                             onAddOrder = { newOrder ->
                                 apiOrder.addOrder(newOrder) { success, _ ->
+                                    Log.d("api order", "add request")
                                     if (success) {
+                                        Log.d("api order", "add successfull")
                                         showAddDialog = false
-                                        apiOrder.getOrders(start_id) { success, response ->
+                                        apiOrder.getOrders(start_id, query) { success, response ->
                                             if (success && response != null) {
                                                 orderData = parseOrders(response)
                                             }
