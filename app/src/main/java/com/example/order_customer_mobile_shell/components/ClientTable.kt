@@ -44,7 +44,6 @@ fun ClientTable(clients: List<ClientRequest>) {
             Row(
                 modifier = Modifier
                     .background(Color.LightGray)
-                    .padding(0.dp)
             ) {
                 TableCell("First Name")
                 TableCell("Middle Name")

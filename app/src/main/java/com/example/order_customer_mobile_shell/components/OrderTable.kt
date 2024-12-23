@@ -38,12 +38,14 @@ fun OrderTable(orders: List<OrderRequest>) {
             Row(
                 modifier = Modifier
                     .background(Color.LightGray)
-                    .padding(8.dp)
             ) {
                 OrderTableCell("Client")
                 OrderTableCell("Product")
                 OrderTableCell("Quantity")
                 OrderTableCell("Total Price")
+                OrderTableCell("Status")
+                OrderTableCell("Description")
+                OrderTableCell("Created At")
             }
 
             // Строки данных
@@ -56,6 +58,9 @@ fun OrderTable(orders: List<OrderRequest>) {
                     OrderTableCell(order.product)
                     OrderTableCell(order.quantity.toString())
                     OrderTableCell(order.total_price)
+                    OrderTableCell(order.status)
+                    OrderTableCell(order.description)
+                    OrderTableCell(order.created_at)
                 }
             }
         }
