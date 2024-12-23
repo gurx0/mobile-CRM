@@ -20,19 +20,24 @@ data class ClientRequest(
     val email: String
 )
 
-//data class ClientEditRequest(
-//    val first_name: String?,
-//    val last_name: String?
-//)
-
 data class OrderRequest(
-    val client: Int,
+    val client: ClientDetails,
     val product: String,
     val quantity: Int,
     val price: String,
-    val totalPrice: String,
-    val description: String
+    val total_price: String,
+    val description: String,
+    val status: String,
+    val created_at: String
 )
+
+data class ClientDetails(
+    val id: Int,
+    val full_name: String,
+    val email: String,
+    val mobile_phone: String
+)
+
 
 data class OrderEditRequest(
     val product: String?,
@@ -40,6 +45,11 @@ data class OrderEditRequest(
     val price: String?,
     val status: String?
 )
+
+//data class ClientEditRequest(
+//    val first_name: String?,
+//    val last_name: String?
+//)
 
 data class Report(
     val period: Period,
