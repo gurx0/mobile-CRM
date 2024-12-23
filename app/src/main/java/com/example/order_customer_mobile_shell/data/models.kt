@@ -1,5 +1,7 @@
 package com.example.order_customer_mobile_shell.data
 
+import java.time.Period
+
 data class TokenResponse(
     val access: String,
     val refresh: String
@@ -11,7 +13,6 @@ data class LoginRequest(
 )
 
 data class ClientRequest(
-//    val id: Int, // Добавьте это поле
     val first_name: String,
     val last_name: String,
     val middle_name: String?,
@@ -38,5 +39,14 @@ data class OrderEditRequest(
     val quantity: Int?,
     val price: String?,
     val status: String?
+)
+
+data class Report(
+    val period: Period,
+    val new_orders_count: String,
+    val new_clients_count: String,
+    val total_orders_sum: String,
+    val avvg_order_sum: String,
+    val complited_orders_count: String
 )
 
