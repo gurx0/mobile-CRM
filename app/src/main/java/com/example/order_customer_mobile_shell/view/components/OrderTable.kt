@@ -1,4 +1,4 @@
-package com.example.order_customer_mobile_shell.components
+package com.example.order_customer_mobile_shell.view.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,18 +34,19 @@ fun OrderTable(orders: List<OrderRequest>) {
             .padding(16.dp)
     ) {
         Column {
-            // Заголовок таблицы
+
+            // заголовки
             Row(
                 modifier = Modifier
                     .background(Color.LightGray)
             ) {
-                OrderTableCell("Client")
-                OrderTableCell("Product")
-                OrderTableCell("Quantity")
-                OrderTableCell("Total Price")
-                OrderTableCell("Status")
-                OrderTableCell("Description")
-                OrderTableCell("Created At")
+                OrderTableCell("Клиент")
+                OrderTableCell("Продукт")
+                OrderTableCell("Количество")
+                OrderTableCell("Стоимость")
+                OrderTableCell("Статус")
+                OrderTableCell("Описание")
+                OrderTableCell("Создан")
             }
 
             // Строки данных
@@ -53,6 +54,7 @@ fun OrderTable(orders: List<OrderRequest>) {
                 Row(
                     modifier = Modifier
                         .border(1.dp, Color.Gray)
+
                 ) {
                     OrderTableCell(order.client.full_name)
                     OrderTableCell(order.product)
@@ -71,8 +73,8 @@ fun OrderTable(orders: List<OrderRequest>) {
 fun OrderTableCell(content: String) {
     Box(
         modifier = Modifier
-            .width(150.dp) // Фиксированная ширина ячейки
-            .height(50.dp) // Фиксированная высота ячейки
+            .width(150.dp)
+            .height(50.dp)
             .border(1.dp, Color.Gray)
             .padding(8.dp),
         contentAlignment = Alignment.Center

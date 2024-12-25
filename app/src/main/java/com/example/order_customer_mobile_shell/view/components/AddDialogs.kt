@@ -1,4 +1,4 @@
-package com.example.order_customer_mobile_shell.components
+package com.example.order_customer_mobile_shell.view.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
@@ -29,10 +29,10 @@ fun AddClientDialog(onDismiss: () -> Unit, onAddClient: (ClientRequest) -> Unit)
         title = { Text("Новый клиент") },
         text = {
             Column {
-                OutlinedTextField(value = firstName, onValueChange = { firstName = it }, label = { Text("First Name") })
-                OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text("Last Name") })
-                OutlinedTextField(value = middleName, onValueChange = { middleName = it }, label = { Text("Middle Name") })
-                OutlinedTextField(value = mobilePhone, onValueChange = { mobilePhone = it }, label = { Text("Mobile Phone") })
+                OutlinedTextField(value = firstName, onValueChange = { firstName = it }, label = { Text("Имя") })
+                OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text("Фамилия") })
+                OutlinedTextField(value = middleName, onValueChange = { middleName = it }, label = { Text("Отчество") })
+                OutlinedTextField(value = mobilePhone, onValueChange = { mobilePhone = it }, label = { Text("Телефон") })
                 OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
             }
         },
@@ -47,12 +47,12 @@ fun AddClientDialog(onDismiss: () -> Unit, onAddClient: (ClientRequest) -> Unit)
                 )
                 onAddClient(newClient)
             }) {
-                Text("Add")
+                Text("Добавить")
             }
         },
         dismissButton = {
             Button(onClick = { onDismiss() }) {
-                Text("Cancel")
+                Text("Отмена")
             }
         }
     )
@@ -79,17 +79,17 @@ fun AddOrderDialog(onDismiss: () -> Unit, onAddOrder: (OrderRequest) -> Unit) {
         text = {
             Column {
 //                // Client details
-                OutlinedTextField(value = clientId.toString(), onValueChange = { clientId = it.toIntOrNull() ?: 0 }, label = { Text("Client ID") })
+                OutlinedTextField(value = clientId.toString(), onValueChange = { clientId = it.toIntOrNull() ?: 0 }, label = { Text("ID Клиента") })
 //                OutlinedTextField(value = clientFullName, onValueChange = { clientFullName = it }, label = { Text("Client Full Name") })
 //                OutlinedTextField(value = clientEmail, onValueChange = { clientEmail = it }, label = { Text("Client Email") })
 //                OutlinedTextField(value = clientMobilePhone, onValueChange = { clientMobilePhone = it }, label = { Text("Client Mobile Phone") })
 
                 // Order details
-                OutlinedTextField(value = product, onValueChange = { product = it }, label = { Text("Product") })
-                OutlinedTextField(value = quantity.toString(), onValueChange = { quantity = it.toIntOrNull() ?: 0 }, label = { Text("Quantity") })
-                OutlinedTextField(value = price, onValueChange = { price = it }, label = { Text("Price") })
-//                OutlinedTextField(value = totalPrice, onValueChange = { totalPrice = it }, label = { Text("Total Price") })
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") })
+                OutlinedTextField(value = product, onValueChange = { product = it }, label = { Text("Продукт") })
+                OutlinedTextField(value = quantity.toString(), onValueChange = { quantity = it.toIntOrNull() ?: 0 }, label = { Text("Количество") })
+                OutlinedTextField(value = price, onValueChange = { price = it }, label = { Text("Цена") })
+//                OutlinedTextField(value = totalPrice, onValueChange = { totalPrice = it }, label = { Text("Стоимость") })
+                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Описание") })
             }
         },
         confirmButton = {
@@ -112,12 +112,12 @@ fun AddOrderDialog(onDismiss: () -> Unit, onAddOrder: (OrderRequest) -> Unit) {
                 )
                 onAddOrder(newOrder)
             }) {
-                Text("Add")
+                Text("Добавить")
             }
         },
         dismissButton = {
             Button(onClick = { onDismiss() }) {
-                Text("Cancel")
+                Text("Отмена")
             }
         }
     )
