@@ -1,4 +1,4 @@
-package com.example.order_customer_mobile_shell
+package com.example.order_customer_mobile_shell.view
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

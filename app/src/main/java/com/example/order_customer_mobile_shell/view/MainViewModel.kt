@@ -1,3 +1,5 @@
+package com.example.order_customer_mobile_shell.view
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.order_customer_mobile_shell.data.ClientRequest

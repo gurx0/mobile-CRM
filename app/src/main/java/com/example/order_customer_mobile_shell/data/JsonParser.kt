@@ -1,8 +1,5 @@
 package com.example.order_customer_mobile_shell.data
 
-
-import com.example.order_customer_mobile_shell.data.ClientRequest
-import com.example.order_customer_mobile_shell.data.OrderRequest
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 

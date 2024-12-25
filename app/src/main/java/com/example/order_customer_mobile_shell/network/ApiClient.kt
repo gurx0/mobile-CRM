@@ -1,5 +1,6 @@
 package com.example.order_customer_mobile_shell.network
 
+import android.util.Log
 import com.example.order_customer_mobile_shell.data.ClientRequest
 import okhttp3.FormBody
 import java.io.IOException
@@ -48,6 +49,7 @@ class ApiClient(private val authService: AuthService) {
                 val accessToken = authService.getAccessToken()
                 val params = mutableMapOf("start_id" to startId.toString())
                 search?.let { params["search"] = it }
+                Log.d("post", "search request: $search")
                 executePostRequest("/api/clients/get/", params, accessToken, callback)
             } else {
                 callback(false, "Failed to refresh token")
@@ -144,12 +146,4 @@ class ApiClient(private val authService: AuthService) {
             }
         })
     }
-
-    public fun parseClients(json: String): List<ClientRequest> {
-        val gson = Gson()
-        val responseType = object : TypeToken<Map<String, List<ClientRequest>>>() {}.type
-        val response: Map<String, List<ClientRequest>> = gson.fromJson(json, responseType)
-        return response["clients"] ?: emptyList()
-    }
-
 }
