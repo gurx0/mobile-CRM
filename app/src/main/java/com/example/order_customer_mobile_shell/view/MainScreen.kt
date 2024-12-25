@@ -1,4 +1,4 @@
-package com.example.order_customer_mobile_shell
+package com.example.order_customer_mobile_shell.view
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -16,10 +16,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
-import com.example.order_customer_mobile_shell.components.AddClientDialog
-import com.example.order_customer_mobile_shell.components.AddOrderDialog
-import com.example.order_customer_mobile_shell.components.ClientTable
-import com.example.order_customer_mobile_shell.components.OrderTable
+import com.example.order_customer_mobile_shell.view.components.AddClientDialog
+import com.example.order_customer_mobile_shell.view.components.AddOrderDialog
+import com.example.order_customer_mobile_shell.view.components.ClientTable
+import com.example.order_customer_mobile_shell.view.components.OrderTable
 import com.example.order_customer_mobile_shell.data.ClientRequest
 import com.example.order_customer_mobile_shell.data.JsonParser.parseClients
 import com.example.order_customer_mobile_shell.data.JsonParser.parseOrders
@@ -28,9 +28,6 @@ import com.example.order_customer_mobile_shell.network.ApiClient
 import com.example.order_customer_mobile_shell.network.ApiOrder
 import com.example.order_customer_mobile_shell.network.AuthService
 import kotlinx.coroutines.launch
-
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +59,8 @@ fun MainScreen(
                                 )
                                 .padding(horizontal = 0.dp, vertical = 4.dp)
                                 .padding(end = 15.dp)
-                                .border(2.dp, Color.White, RoundedCornerShape(30.dp)),
+                                .border(2.dp, Color.White, RoundedCornerShape(30.dp))
+                            ,
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -83,31 +81,87 @@ fun MainScreen(
                                     .padding(horizontal = 8.dp)
                             )
 
-                            IconButton(
-                                onClick = {
-                                    currentTable = "CLIENTS";
-                                    start_id = 0 ;
-                                    Log.d("table", "start_id: $start_id") }) {
-                                Icon(Icons.Default.Person, contentDescription = "ClientsTable")
-                            }
-                            IconButton(
-                                onClick = {
-                                    currentTable = "ORDERS";
-                                    start_id = 0 ;
-                                    Log.d("table", "start_id: $start_id")}) {
-                                Icon(Icons.Default.ShoppingCart, contentDescription = "OrdersTable")
-                            }
+
                         }
 
 
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF6200EA),
+                    containerColor = Color(0xFF6956E5),
                     titleContentColor = Color.White
                 )
             )
         },
+
+        bottomBar = {
+            BottomAppBar(
+                containerColor = Color(0xFF6956E5),
+                contentPadding = PaddingValues(8.dp),
+                modifier = Modifier.height(56.dp)
+            ) {
+                IconButton(
+                    onClick = {
+                        currentTable = "CLIENTS"
+                        start_id = 0
+                        Log.d("table", "Switching to Clients: start_id = $start_id")
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Person, contentDescription = "ClientsTable", tint = Color.White)
+                }
+                IconButton(
+                    onClick = {
+                        currentTable = "ORDERS"
+                        start_id = 0
+                        Log.d("table", "Switching to Orders: start_id = $start_id")
+                    },
+                    modifier = Modifier.weight(1f),
+
+                ) {
+                    Icon(Icons.Default.ShoppingCart, contentDescription = "OrdersTable", tint = Color.White)
+                }
+
+                IconButton(
+                    onClick = {
+                        scope.launch {
+                            when (currentTable) {
+                                "CLIENTS" -> {
+                                    authService.authenticate("sanya", "mobile-api123") { authSuccess ->
+                                        if (authSuccess) {
+                                            apiClient.getClients(start_id, query) { success, response ->
+                                                if (success && response != null) {
+                                                    clientData = clientData + parseClients(response)
+                                                    start_id += 50
+                                                    Log.d("LoadMore", "Loaded more clients")
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                "ORDERS" -> {
+                                    authService.authenticate("sanya", "mobile-api123") { authSuccess ->
+                                        if (authSuccess) {
+                                            apiOrder.getOrders(start_id, query) { success, response ->
+                                                if (success && response != null) {
+                                                    orderData = orderData + parseOrders(response)
+                                                    start_id += 50
+                                                    Log.d("LoadMore", "Loaded more orders")
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Download, contentDescription = "load more", tint = Color.White)
+                }
+            }
+        },
+
         content = { innerPadding ->
             Box(
                 modifier = Modifier
@@ -134,7 +188,7 @@ fun MainScreen(
                                                     } catch (e: Exception){
                                                         emptyList()
                                                     }
-                                                    start_id += 50
+//                                                    start_id += 50
                                                 }
                                             }
                                         }
@@ -152,7 +206,7 @@ fun MainScreen(
                                                     } catch (e: Exception){
                                                         emptyList()
                                                     }
-                                                    start_id += 50
+//                                                    start_id += 50
                                                 }
                                             }
                                         }
