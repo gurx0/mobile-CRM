@@ -1,5 +1,6 @@
 package com.example.order_customer_mobile_shell.view.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -17,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.order_customer_mobile_shell.data.OrderRequest
@@ -35,27 +37,23 @@ fun OrderTable(orders: List<OrderRequest>) {
     ) {
         Column {
 
-            // заголовки
+            // Заголовки
             Row(
                 modifier = Modifier
-                    .background(Color.LightGray)
+                    .background(Color(0xFFdbe5f0))
             ) {
-                OrderTableCell("Клиент")
-                OrderTableCell("Продукт")
-                OrderTableCell("Количество")
-                OrderTableCell("Стоимость")
-                OrderTableCell("Статус")
-                OrderTableCell("Описание")
-                OrderTableCell("Создан")
+                OrderTableCell("Клиент", header = true)
+                OrderTableCell("Продукт", header = true)
+                OrderTableCell("Количество", header = true)
+                OrderTableCell("Стоимость", header = true)
+                OrderTableCell("Статус", header = true)
+                OrderTableCell("Описание", header = true)
+                OrderTableCell("Создан", header = true)
             }
 
-            // Строки данных
+            // Данные
             orders.forEach { order ->
-                Row(
-                    modifier = Modifier
-                        .border(1.dp, Color.Gray)
-
-                ) {
+                Row {
                     OrderTableCell(order.client.full_name)
                     OrderTableCell(order.product)
                     OrderTableCell(order.quantity.toString())
@@ -70,15 +68,25 @@ fun OrderTable(orders: List<OrderRequest>) {
 }
 
 @Composable
-fun OrderTableCell(content: String) {
+fun OrderTableCell(content: String, header: Boolean = false) {
     Box(
         modifier = Modifier
             .width(150.dp)
             .height(50.dp)
-            .border(1.dp, Color.Gray)
-            .padding(8.dp),
+            .border(
+                BorderStroke(
+                    width = 1.dp,
+                    color = if (header) Color.Gray else Color(0xFFDADADA) // Только горизонтальные границы
+                )
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp), // Оставляем внутренний отступ
         contentAlignment = Alignment.Center
     ) {
-        Text(content, textAlign = TextAlign.Center)
+        Text(
+            text = content,
+            textAlign = TextAlign.Center,
+            fontFamily = FontFamily.Monospace,
+            color = if (header) Color.Black else Color.DarkGray
+        )
     }
 }

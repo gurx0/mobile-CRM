@@ -1,6 +1,7 @@
 package com.example.order_customer_mobile_shell.view
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import com.example.order_customer_mobile_shell.view.components.AddClientDialog
 import com.example.order_customer_mobile_shell.view.components.AddOrderDialog
 import com.example.order_customer_mobile_shell.view.components.ClientTable
@@ -28,6 +30,7 @@ import com.example.order_customer_mobile_shell.network.ApiClient
 import com.example.order_customer_mobile_shell.network.ApiOrder
 import com.example.order_customer_mobile_shell.network.AuthService
 import kotlinx.coroutines.launch
+import kotlin.system.exitProcess
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,227 +47,301 @@ fun MainScreen(
 
     val scope = rememberCoroutineScope()
     var start_id by remember { mutableStateOf(0) }
+    var currentScreen by remember { mutableStateOf("REGISTRATION") }
+    val context = LocalContext.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    color = Color.White.copy(alpha = 0f),
-                                    shape = RoundedCornerShape(30.dp)
-                                )
-                                .padding(horizontal = 0.dp, vertical = 4.dp)
-                                .padding(end = 15.dp)
-                                .border(2.dp, Color.White, RoundedCornerShape(30.dp))
-                            ,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                onClick = { showAddDialog = true },
-                                modifier = Modifier.padding(end = 5.dp)
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = "Add")
+    when (currentScreen) {
+        "REGISTRATION" -> {
+            RegistrationScreen(
+                onRegister = { username, password ->
+                    scope.launch {
+                            if (username.equals("sanya") && password.equals("mobile-api123")) {
+                                authService.authenticate(username, password) { success ->
+                                    if (success) {
+                                        currentScreen = "MAIN"
+                                    }
+                                }
+                            } else {
+                                Log.e("Registration", "Failed auth")
+                                Toast.makeText(context , "Неверные данные для входа", Toast.LENGTH_SHORT).show()
                             }
-
-                            BasicTextField(
-                                value = query,
-                                onValueChange = { query = it },
-                                textStyle = TextStyle(fontSize = 16.sp, color = Color.White),
-                                singleLine = true,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(horizontal = 8.dp)
-                            )
-
-
-                        }
-
-
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF6956E5),
-                    titleContentColor = Color.White
-                )
+                onBack = { exitProcess(1) }
             )
-        },
+        }
 
-        bottomBar = {
-            BottomAppBar(
-                containerColor = Color(0xFF6956E5),
-                contentPadding = PaddingValues(8.dp),
-                modifier = Modifier.height(56.dp)
-            ) {
-                IconButton(
-                    onClick = {
-                        currentTable = "CLIENTS"
-                        start_id = 0
-                        Log.d("table", "Switching to Clients: start_id = $start_id")
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Person, contentDescription = "ClientsTable", tint = Color.White)
-                }
-                IconButton(
-                    onClick = {
-                        currentTable = "ORDERS"
-                        start_id = 0
-                        Log.d("table", "Switching to Orders: start_id = $start_id")
-                    },
-                    modifier = Modifier.weight(1f),
+        "MAIN" -> {
 
-                ) {
-                    Icon(Icons.Default.ShoppingCart, contentDescription = "OrdersTable", tint = Color.White)
-                }
-
-                IconButton(
-                    onClick = {
-                        scope.launch {
-                            when (currentTable) {
-                                "CLIENTS" -> {
-                                    authService.authenticate("sanya", "mobile-api123") { authSuccess ->
-                                        if (authSuccess) {
-                                            apiClient.getClients(start_id, query) { success, response ->
-                                                if (success && response != null) {
-                                                    clientData = clientData + parseClients(response)
-                                                    start_id += 50
-                                                    Log.d("LoadMore", "Loaded more clients")
-                                                }
-                                            }
-                                        }
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Column {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(
+                                            color = Color.White.copy(alpha = 0f),
+                                            shape = RoundedCornerShape(30.dp)
+                                        )
+                                        .padding(horizontal = 0.dp, vertical = 4.dp)
+                                        .padding(end = 15.dp)
+                                        .border(2.dp, Color.White, RoundedCornerShape(30.dp)),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    IconButton(
+                                        onClick = { showAddDialog = true },
+                                        modifier = Modifier.padding(end = 5.dp)
+                                    ) {
+                                        Icon(Icons.Default.Add, contentDescription = "Add")
                                     }
+
+                                    BasicTextField(
+                                        value = query,
+                                        onValueChange = { query = it },
+                                        textStyle = TextStyle(
+                                            fontSize = 16.sp,
+                                            color = Color.White
+                                        ),
+                                        singleLine = true,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(horizontal = 8.dp),
+                                    )
+
+
                                 }
-                                "ORDERS" -> {
-                                    authService.authenticate("sanya", "mobile-api123") { authSuccess ->
-                                        if (authSuccess) {
-                                            apiOrder.getOrders(start_id, query) { success, response ->
-                                                if (success && response != null) {
-                                                    orderData = orderData + parseOrders(response)
-                                                    start_id += 50
-                                                    Log.d("LoadMore", "Loaded more orders")
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+
+
                             }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color(0xFF6956E5),
+                            titleContentColor = Color.White
+                        )
+                    )
+                },
+
+                bottomBar = {
+                    BottomAppBar(
+                        containerColor = Color(0xFF6956E5),
+                        contentPadding = PaddingValues(8.dp),
+                        modifier = Modifier.height(56.dp)
+                    ) {
+                        IconButton(
+                            onClick = {
+                                currentTable = "CLIENTS"
+                                start_id = 0
+                                Log.d("table", "Switching to Clients: start_id = $start_id")
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = "ClientsTable",
+                                tint = Color.White
+                            )
                         }
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Download, contentDescription = "load more", tint = Color.White)
-                }
-            }
-        },
+                        IconButton(
+                            onClick = {
+                                currentTable = "ORDERS"
+                                start_id = 0
+                                Log.d("table", "Switching to Orders: start_id = $start_id")
+                            },
+                            modifier = Modifier.weight(1f),
 
-        content = { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(Color.White)
-            ) {
-                when (currentTable) {
-                    "CLIENTS" -> ClientTable(clientData)
-                    "ORDERS" -> OrderTable(orderData)
-                }
+                            ) {
+                            Icon(
+                                Icons.Default.ShoppingCart,
+                                contentDescription = "OrdersTable",
+                                tint = Color.White
+                            )
+                        }
 
-                FloatingActionButton(
-                    onClick = {
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    when (currentTable) {
+                                        "CLIENTS" -> {
+                                            authService.authenticate(
+                                                "sanya",
+                                                "mobile-api123"
+                                            ) { authSuccess ->
+                                                if (authSuccess) {
+                                                    apiClient.getClients(
+                                                        start_id,
+                                                        query
+                                                    ) { success, response ->
+                                                        if (success && response != null) {
+                                                            clientData =
+                                                                clientData + parseClients(response)
+                                                            start_id += 50
+                                                            Log.d("LoadMore", "Loaded more clients")
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        "ORDERS" -> {
+                                            authService.authenticate(
+                                                "sanya",
+                                                "mobile-api123"
+                                            ) { authSuccess ->
+                                                if (authSuccess) {
+                                                    apiOrder.getOrders(
+                                                        start_id,
+                                                        query
+                                                    ) { success, response ->
+                                                        if (success && response != null) {
+                                                            orderData =
+                                                                orderData + parseOrders(response)
+                                                            start_id += 50
+                                                            Log.d("LoadMore", "Loaded more orders")
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                Icons.Default.Download,
+                                contentDescription = "load more",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                },
+
+                content = { innerPadding ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .background(Color.White)
+                    ) {
                         when (currentTable) {
-                            "CLIENTS" -> {
-                                scope.launch {
-                                    authService.authenticate("sanya", "mobile-api123") { authSuccess ->
-                                        if (authSuccess) {
-                                            apiClient.getClients(start_id, query) { success, response ->
-                                                if (success && response != null) {
-                                                    clientData = try {
-                                                        parseClients(response)
-                                                    } catch (e: Exception){
-                                                        emptyList()
+                            "CLIENTS" -> ClientTable(clientData)
+                            "ORDERS" -> OrderTable(orderData)
+                        }
+
+                        FloatingActionButton(
+                            onClick = {
+                                when (currentTable) {
+                                    "CLIENTS" -> {
+                                        scope.launch {
+                                            authService.authenticate(
+                                                "sanya",
+                                                "mobile-api123"
+                                            ) { authSuccess ->
+                                                if (authSuccess) {
+                                                    apiClient.getClients(
+                                                        start_id,
+                                                        query
+                                                    ) { success, response ->
+                                                        if (success && response != null) {
+                                                            clientData = try {
+                                                                parseClients(response)
+                                                            } catch (e: Exception) {
+                                                                emptyList()
+                                                            }
+                                                        }
                                                     }
-//                                                    start_id += 50
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    "ORDERS" -> {
+                                        scope.launch {
+                                            authService.authenticate(
+                                                "sanya",
+                                                "mobile-api123"
+                                            ) { authSuccess ->
+                                                if (authSuccess) {
+                                                    apiOrder.getOrders(
+                                                        start_id,
+                                                        query
+                                                    ) { success, response ->
+                                                        if (success && response != null) {
+                                                            orderData = try {
+                                                                parseOrders(response)
+                                                            } catch (e: Exception) {
+                                                                emptyList()
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            "ORDERS" -> {
-                                scope.launch {
-                                    authService.authenticate("sanya", "mobile-api123") { authSuccess ->
-                                        if (authSuccess) {
-                                            apiOrder.getOrders(start_id, query) { success, response ->
-                                                if (success && response != null) {
-                                                    orderData = try {
-                                                        parseOrders(response)
-                                                    } catch (e: Exception){
-                                                        emptyList()
+                            },
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(16.dp)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Refresh Data")
+                        }
+
+                        if (showAddDialog) {
+                            when (currentTable) {
+                                "CLIENTS" -> AddClientDialog(
+                                    onDismiss = { showAddDialog = false },
+                                    onAddClient = { newClient ->
+                                        Log.d("Main Screen", "attempting add client: $newClient")
+                                        apiClient.addClient(newClient) { success, _ ->
+                                            Log.d("Main Screen", "client added successfully")
+                                            if (success) {
+                                                Log.d("Main", " $success")
+                                                showAddDialog = false
+
+                                                Log.d("Main", "window is closed - $showAddDialog")
+                                                apiClient.getClients(
+                                                    start_id,
+                                                    query
+                                                ) { success, response ->
+                                                    if (success && response != null) {
+                                                        clientData = parseClients(response)
                                                     }
-//                                                    start_id += 50
                                                 }
                                             }
                                         }
                                     }
-                                }
+                                )
+
+                                "ORDERS" -> AddOrderDialog(
+                                    onDismiss = { showAddDialog = false },
+                                    onAddOrder = { newOrder ->
+                                        apiOrder.addOrder(newOrder) { success, _ ->
+                                            Log.d("api order", "add request")
+                                            if (success) {
+                                                Log.d("api order", "add successfull")
+                                                showAddDialog = false
+                                                apiOrder.getOrders(
+                                                    start_id,
+                                                    query
+                                                ) { success, response ->
+                                                    if (success && response != null) {
+                                                        orderData = parseOrders(response)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                )
                             }
                         }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                ) {
-                    Icon(Icons.Default.Refresh, contentDescription = "Refresh Data")
-                }
-
-                if (showAddDialog) {
-                    when (currentTable) {
-                        "CLIENTS" -> AddClientDialog(
-                            onDismiss = { showAddDialog = false },
-                            onAddClient = { newClient ->
-                                Log.d("Main Screen", "attempting add client: $newClient")
-                                apiClient.addClient(newClient) { success, _ ->
-                                    Log.d("Main Screen", "client added successfully")
-                                    if (success) {
-                                        Log.d("Main", " $success")
-                                        showAddDialog = false
-
-                                        Log.d("Main", "window is closed - $showAddDialog")
-                                        apiClient.getClients(start_id, query) { success, response ->
-                                            if (success && response != null) {
-                                                clientData = parseClients(response)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        )
-                        "ORDERS" -> AddOrderDialog(
-                            onDismiss = { showAddDialog = false },
-                            onAddOrder = { newOrder ->
-                                apiOrder.addOrder(newOrder) { success, _ ->
-                                    Log.d("api order", "add request")
-                                    if (success) {
-                                        Log.d("api order", "add successfull")
-                                        showAddDialog = false
-                                        apiOrder.getOrders(start_id, query) { success, response ->
-                                            if (success && response != null) {
-                                                orderData = parseOrders(response)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        )
                     }
                 }
-            }
+            )
         }
-    )
+    }
 }
 
